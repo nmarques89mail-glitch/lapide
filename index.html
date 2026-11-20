@@ -40,6 +40,14 @@
     environment-image="neutral">
   </model-viewer>
 
+  <script>
+    const viewer = document.querySelector('model-viewer');
+
+    viewer.addEventListener('wheel', function(event) {
+      event.preventDefault();
+    }, { passive: false, capture: true });
+  </script>
+
 </body>
 </html>
 
