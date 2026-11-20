@@ -43,9 +43,9 @@
   <script>
     const viewer = document.querySelector('model-viewer');
 
-    viewer.addEventListener('wheel', function(event) {
-      event.preventDefault();
-    }, { passive: false, capture: true });
+ viewer.addEventListener('wheel', function(event) {
+  event.stopImmediatePropagation();
+}, { capture: true });
   </script>
 
 </body>
