@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@
     .flower.fresh {animation:drop .55s ease-out;}
     @keyframes drop {from{opacity:0;translate:0 -24px;}to{opacity:1;translate:0 0;}}
     #controls {position:absolute;bottom:2%;left:0;right:0;text-align:center;color:white;font:12px Arial,sans-serif;pointer-events:none;}
-    #leave {pointer-events:auto;background:#111a;color:white;border:1px solid white;padding:10px 22px;font:700 12px Arial,sans-serif;letter-spacing:.08em;cursor:pointer;}
+    #leave {pointer-events:auto;background:#111a;color:white;border:1px solid white;padding:14px 30px;font:700 15px Arial,sans-serif;letter-spacing:.08em;cursor:pointer;}
     #leave:hover:not(:disabled) {background:white;color:black;}
     #leave:disabled {opacity:.65;cursor:default;}
     #count {margin:8px 0 0;}
@@ -58,8 +58,8 @@
 
   <div id="garden" aria-hidden="true"></div>
   <div id="controls">
-    <button type="button" id="leave" disabled>LEAVE A FLOWER</button>
-    <p id="count" role="status">Loading flowers…</p>
+    <button type="button" id="leave" disabled>DEIXA UMA FLOR</button>
+    <p id="count" role="status">A carregar as flores…</p>
   </div>
   <script>
     const endpoint = "https://paontsmfwirlpcasihru.supabase.co/rest/v1/rpc/";
@@ -90,21 +90,21 @@
         el.innerHTML='<svg viewBox="0 0 60 120"><path d="M30 115 Q22 70 30 32" stroke="#527044" stroke-width="3" fill="none"/><path d="M28 80 Q3 45 12 77 Q17 86 28 80 M29 65 Q55 38 48 65 Q40 76 29 65" fill="#64854b"/><g fill="'+c+'"><ellipse cx="30" cy="17" rx="10" ry="15"/><ellipse cx="17" cy="27" rx="14" ry="10"/><ellipse cx="43" cy="27" rx="14" ry="10"/><ellipse cx="21" cy="39" rx="11" ry="13"/><ellipse cx="39" cy="39" rx="11" ry="13"/></g><circle cx="30" cy="29" r="7" fill="#ac9047"/></svg>';
         garden.append(el);
       }
-      count.textContent=n+" "+(n===1?"flower":"flowers")+" left in memory of a copywriter.";
+      count.textContent=n+" "+(n===1?"flor deixada":"flores deixadas")+" em memória de um copywriter.";
     }
     async function refresh(){
       if(busy||loading)return;
       loading=true;
       try{render(await rpc("get_flowers"));button.disabled=false;}
-      catch(e){if(shown<0)count.textContent="Flowers temporarily unavailable.";}
+      catch(e){if(shown<0)count.textContent="Flores temporariamente indisponíveis.";}
       finally{loading=false;}
     }
     button.addEventListener("click",async()=>{
       if(busy||loading)return;
       busy=true;button.disabled=true;
-      try{await rpc("leave_flower");button.textContent="THANK YOU";render(await rpc("get_flowers"),true);}
-      catch(e){button.textContent="CHECK CONNECTION";count.textContent="Could not confirm the flower. Refresh to check.";}
-      finally{setTimeout(()=>{busy=false;button.disabled=false;button.textContent="LEAVE A FLOWER";refresh();},2000);}
+      try{await rpc("leave_flower");button.textContent="OBRIGADO";render(await rpc("get_flowers"),true);}
+      catch(e){button.textContent="VERIFICA A LIGAÇÃO";count.textContent="Não foi possível confirmar a flor. Atualiza a página para verificar.";}
+      finally{setTimeout(()=>{busy=false;button.disabled=false;button.textContent="DEIXA UMA FLOR";refresh();},2000);}
     });
     refresh();
     setInterval(()=>{if(!document.hidden)refresh();},30000);
