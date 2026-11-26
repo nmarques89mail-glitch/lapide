@@ -23,9 +23,21 @@
       display: block;
       width: 100%;
       height: 100%;
+      touch-action: pan-y;
       background: transparent;
       --poster-color: transparent;
     }
+  
+    #garden {position:absolute;left:16%;right:16%;bottom:12%;height:20%;pointer-events:none;}
+    .flower {position:absolute;width:clamp(22px,4.5vw,58px);transform-origin:50% 95%;filter:drop-shadow(1px 3px 2px #0008);}
+    .flower.fresh {animation:drop .55s ease-out;}
+    @keyframes drop {from{opacity:0;translate:0 -24px;}to{opacity:1;translate:0 0;}}
+    #controls {position:absolute;bottom:2%;left:0;right:0;text-align:center;color:white;font:12px Arial,sans-serif;pointer-events:none;}
+    #leave {pointer-events:auto;background:#111a;color:white;border:1px solid white;padding:10px 22px;font:700 12px Arial,sans-serif;letter-spacing:.08em;cursor:pointer;}
+    #leave:hover:not(:disabled) {background:white;color:black;}
+    #leave:disabled {opacity:.65;cursor:default;}
+    #count {margin:8px 0 0;}
+    @media(prefers-reduced-motion:reduce){.flower.fresh{animation:none;}}
   </style>
 </head>
 
@@ -35,6 +47,7 @@
     src="LAPIDE-v1.glb"
     camera-controls
     disable-zoom
+    touch-action="pan-y"
     auto-rotate
     rotation-per-second="15deg"
     shadow-intensity="1"
@@ -42,6 +55,61 @@
     environment-image="neutral">
   </model-viewer>
 
+
+  <div id="garden" aria-hidden="true"></div>
+  <div id="controls">
+    <button type="button" id="leave" disabled>LEAVE A FLOWER</button>
+    <p id="count" role="status">Loading flowers…</p>
+  </div>
+  <script>
+    const endpoint = "https://paontsmfwirlpcasihru.supabase.co/rest/v1/rpc/";
+    const key = "sb_publishable_gDB2E-Ta38rGAAbAp5vr5w_j0ygjtSj";
+    const garden = document.getElementById("garden");
+    const button = document.getElementById("leave");
+    const count = document.getElementById("count");
+    let busy = false, loading = false, shown = -1;
+    async function rpc(name) {
+      const r = await fetch(endpoint + name, {method:"POST",headers:{apikey:key,"Content-Type":"application/json"},body:"{}",signal:AbortSignal.timeout(12000)});
+      if (!r.ok) throw new Error("Request failed");
+      const n = Number(await r.json());
+      if (!Number.isSafeInteger(n) || n < 0) throw new Error("Invalid count");
+      return n;
+    }
+    function render(n, animate=false) {
+      if (n === shown) return;
+      shown = n;
+      garden.replaceChildren();
+      const colors = ["#b93443","#f4eee0","#dca8b3","#e6ca78"];
+      for(let i=Math.max(0,n-45);i<n;i++){
+        const el=document.createElement("div");
+        el.className="flower"+(animate&&i===n-1?" fresh":"");
+        el.style.left=((i*37+7)%90)+"%";
+        el.style.bottom=((i*17)%35)+"%";
+        el.style.transform="rotate("+((i*47)%140-70)+"deg)";
+        const c=colors[i%colors.length];
+        el.innerHTML='<svg viewBox="0 0 60 120"><path d="M30 115 Q22 70 30 32" stroke="#527044" stroke-width="3" fill="none"/><path d="M28 80 Q3 45 12 77 Q17 86 28 80 M29 65 Q55 38 48 65 Q40 76 29 65" fill="#64854b"/><g fill="'+c+'"><ellipse cx="30" cy="17" rx="10" ry="15"/><ellipse cx="17" cy="27" rx="14" ry="10"/><ellipse cx="43" cy="27" rx="14" ry="10"/><ellipse cx="21" cy="39" rx="11" ry="13"/><ellipse cx="39" cy="39" rx="11" ry="13"/></g><circle cx="30" cy="29" r="7" fill="#ac9047"/></svg>';
+        garden.append(el);
+      }
+      count.textContent=n+" "+(n===1?"flower":"flowers")+" left in memory of a copywriter.";
+    }
+    async function refresh(){
+      if(busy||loading)return;
+      loading=true;
+      try{render(await rpc("get_flowers"));button.disabled=false;}
+      catch(e){if(shown<0)count.textContent="Flowers temporarily unavailable.";}
+      finally{loading=false;}
+    }
+    button.addEventListener("click",async()=>{
+      if(busy||loading)return;
+      busy=true;button.disabled=true;
+      try{await rpc("leave_flower");button.textContent="THANK YOU";render(await rpc("get_flowers"),true);}
+      catch(e){button.textContent="CHECK CONNECTION";count.textContent="Could not confirm the flower. Refresh to check.";}
+      finally{setTimeout(()=>{busy=false;button.disabled=false;button.textContent="LEAVE A FLOWER";refresh();},2000);}
+    });
+    refresh();
+    setInterval(()=>{if(!document.hidden)refresh();},30000);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
+  </script>
 </body>
 </html>
 
